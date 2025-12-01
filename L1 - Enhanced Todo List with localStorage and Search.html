@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L1 - Enhanced Todo List</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .completed { text-decoration: line-through; color: gray; }
+    .task-row { display: flex; justify-content: space-between; margin: 5px 0; }
+    button { margin-left: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>L1 - Enhanced Todo List with localStorage and Search</h2>
+
+  <!-- Search Bar -->
+  <input type="text" id="search" placeholder="Search tasks..." />
+
+  <br><br>
+
+  <!-- Input field + Add button -->
+  <input type="text" id="taskInput" placeholder="Enter a new task">
+  <button id="addBtn">Add Task</button>
+
+  <h3>Your Tasks:</h3>
+  <div id="taskList"></div>
+
+  <script>
+    // ------------------- GLOBAL VARIABLES -------------------
+    let tasks = []; // Will store the tasks array (JSON objects)
+    const taskList = document.getElementById("taskList");
+    const search = document.getElementById("search");
+
+    // ------------------- LOAD SAVED TASKS -------------------
+    window.addEventListener("load", function () {
+      const saved = localStorage.getItem("todos");
+
+      if (saved) {
+        tasks = JSON.parse(saved); // Load tasks
+      }
+
+      renderTasks(tasks); // Display tasks
+    });
+
+    // ------------------- ADD TASK -------------------
+    document.getElementById("addBtn").addEventListener("click", function () {
+      const text = document.getElementById("taskInput").value.trim();
+
+      if (text === "") {
+        alert("Task cannot be empty!");
+        return;
+      }
+
+      // Create task object
+      const newTask = {
+        id: Date.now(), // Unique ID
+        text: text,
+        completed: false
+      };
+
+      tasks.push(newTask);
+      saveAndRender();
+      document.getElementById("taskInput").value = ""; // Clear input
+    });
+
+    // ------------------- RENDER TASKS -------------------
+    function renderTasks(list) {
+      taskList.innerHTML = ""; // Clear before re-render
+
+      list.forEach(task => {
+        const row = document.createElement("div");
+        row.className = "task-row";
+
+        const taskText = document.createElement("span");
+        taskText.textContent = task.text;
+
+        // Add class if completed
+        if (task.completed) {
+          taskText.classList.add("completed");
+        }
+
+        // Toggle completion on click
+        taskText.addEventListener("click", function () {
+          task.completed = !task.completed;
+          saveAndRender();
+        });
+
+        // Delete button
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function () {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveAndRender();
+        });
+
+        row.appendChild(taskText);
+        row.appendChild(delBtn);
+        taskList.appendChild(row);
+      });
+    }
+
+    // ------------------- SEARCH FUNCTION -------------------
+    search.addEventListener("input", function () {
+      const keyword = search.value.toLowerCase();
+      const filtered = tasks.filter(task =>
+        task.text.toLowerCase().includes(keyword)
+      );
+
+      renderTasks(filtered);
+    });
+
+    // ------------------- SAVE & RE-RENDER -------------------
+    function saveAndRender() {
+      localStorage.setItem("todos", JSON.stringify(tasks));
+      renderTasks(tasks);
+    }
+  </script>
+
+</body>
+</html>
